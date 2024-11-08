@@ -47,14 +47,17 @@ public class BaseController : ControllerBase
     {
         try
         {
+            var sid = Environment.GetEnvironmentVariable("TwilioSid") ?? _configuration.GetSection("TwilioSid").Value;
+            var token = Environment.GetEnvironmentVariable("TwilioAuthToken") ?? _configuration.GetSection("TwilioAuthToken").Value;
+            var twilioNumber = Environment.GetEnvironmentVariable("TwilioNumber") ?? _configuration.GetSection("TwilioNumber").Value;
             var num = Regex.Replace(number, "[^0-9_]", "");
             var sendTo = $"+63{num}";
-            TwilioClient.Init(_configuration.GetSection("TwilioSid").Value,
-                _configuration.GetSection("TwilioAuthToken").Value);
+            TwilioClient.Init(sid,
+                token);
 
             var messageOptions = new CreateMessageOptions(
                 new PhoneNumber(sendTo));
-            messageOptions.From = new PhoneNumber(_configuration.GetSection("TwilioNumber").Value);
+            messageOptions.From = new PhoneNumber(twilioNumber);
             messageOptions.Body = message;
             var sms = MessageResource.Create(messageOptions);
         }

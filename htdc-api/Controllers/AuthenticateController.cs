@@ -218,7 +218,35 @@ public class AuthenticateController : BaseController
             return BadRequest(ex.Message + "/n/n" + ex.StackTrace);
         }
     }
-    
+
+    [HttpPost]
+    [Route("Resend")]
+    [AllowAnonymous]
+    [ApiExplorerSettings(IgnoreApi = true)]
+    public async Task<IActionResult> Resend(VerifyEmailPayload payload)
+    {
+        var user = await _userManager.FindByEmailAsync(payload.Email);
+        byte[] time = BitConverter.GetBytes(DateTime.UtcNow.ToBinary());
+        byte[] key = Guid.NewGuid().ToByteArray();
+        string token = Convert.ToBase64String(time.Concat(key).ToArray());
+
+        var url = _configuration.GetSection("baseUrl").Value;
+        var confirmationEmail = $"{url}/confirm?user={user.Id}&token={UrlEncode(token)}";
+        await _context.VerificationTokens.AddAsync(new VerificationTokens
+        {
+            AspNetUserId = user.Id,
+            Token = token,
+            IssuedDate = DateTime.UtcNow,
+            ExpiresDate = DateTime.UtcNow.AddHours(1)
+        });
+
+        await _context.SaveChangesAsync();
+
+        var emailBody = $"Click the url to verify email address for {user.UserName}\n {confirmationEmail}";
+        SendEmail(payload.Email, emailBody, "Verify Email");
+
+        return Ok();
+    }
     private JwtSecurityToken GetToken(List<Claim> authClaims)
     {
         var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));

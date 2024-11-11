@@ -52,7 +52,8 @@ public class ApplicationDbContext: IdentityDbContext<IdentityUser>
             PhoneNumber = "1234567890",
             PasswordHash = "AQAAAAEAACcQAAAAEC+JtF2rYLpMmJtZ5Yt6vVyplT2sEucaRDGi533vIB1Tg1BRwqUyYmjzvN7J1EPqyQ==",
             SecurityStamp = "30e5f131-4d2a-4f34-9225-f8d8390ba5d4",
-            ConcurrencyStamp = "505d3481-aefd-4c46-9901-01867e1ba956"
+            ConcurrencyStamp = "505d3481-aefd-4c46-9901-01867e1ba956",
+            EmailConfirmed = true,
         };
 
         builder.Entity<IdentityUser>().HasData(user);

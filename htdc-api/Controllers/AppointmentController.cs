@@ -377,16 +377,16 @@ public class AppointmentController: BaseController
                 };
                 await _context.AppointmentInformations.AddAsync(appointmentInformation);
                 await _context.SaveChangesAsync();
+                var timeIds = appointmentInformation.AppointmentTimeIds.Split(',').Select(int.Parse).ToList();
+                var selectedSlots = timeslots
+                    .Where(x => appointmentInformation.AppointmentTimeIds != null && timeIds.Contains(x.Id))
+                    .OrderBy(x => x.MilitaryTime).ToList();
+                var appointmentLabel = selectedSlots.Count > 1
+                    ? $"{selectedSlots[0].Name.Split("-")[0].Trim()} - {selectedSlots[1].Name.Split("-")[0].Trim()}"
+                    : selectedSlots[0].Name;
 
                 if (patientInformation.Email != null && patientInformation.Email != string.Empty)
                 {
-                    var timeIds =  appointmentInformation.AppointmentTimeIds.Split(',').Select(int.Parse).ToList();
-                    var selectedSlots = timeslots
-                        .Where(x => appointmentInformation.AppointmentTimeIds != null && timeIds.Contains(x.Id))
-                        .OrderBy(x => x.MilitaryTime).ToList();
-                    var appointmentLabel = selectedSlots.Count > 1
-                        ? $"{selectedSlots[0].Name.Split("-")[0].Trim()} - {selectedSlots[1].Name.Split("-")[0].Trim()}"
-                        : selectedSlots[0].Name;
                     if (appointmentInformation.PaymentMethod == PaymentMethodEnum.Paypal)
                     {
                         string path = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), @"Receipt.html");
@@ -404,15 +404,17 @@ public class AppointmentController: BaseController
                     {
                         var emailBody =
                             $"Appointment on {appointmentInformation.AppointmentDate.ToString("MM/dd/yyyy")} {appointmentLabel} has been scheduled to you.<br/>" +
-                            $"Please don't forget to settle your payment at the clinic.";
+                            $"Please be in the clinic 10 minutes before the appointment, and you have a grace period of 10 to 15 minutes otherwise wise your appointment will be reschedule." +
+                            $"\n\rPlease don't forget to settle your payment at the clinic.";
                         SendEmail(patientInformation.Email, emailBody, "Schedule Confirmation");
                     }
-                    
+                }
 
-                    if (patientInformation.Phone != null && patientInformation.Phone != string.Empty)
-                    {
-                        SendSms(patientInformation.Phone, $"Your appointment on {appointmentInformation.AppointmentDate.ToString("MM/dd/yyyy")} {appointmentLabel} has been scheduled to you.");
-                    }
+                if (patientInformation.Phone != null && patientInformation.Phone != string.Empty)
+                {
+                    var smsMessage = $"Your appointment on {appointmentInformation.AppointmentDate.ToString("MM/dd/yyyy")} {appointmentLabel} " +
+                        $"has been scheduled. Please be in the clinic 10 minutes before the appointment, and you have a grace period of 10 to 15 minutes otherwise wise your appointment will be reschedule.\r\n ";
+                    SendSms(patientInformation.Phone, smsMessage);
                 }
             }
         }
@@ -459,7 +461,42 @@ public class AppointmentController: BaseController
             appointment.AppointmentTimeIds = String.Join(",", selectedTimeslots.Select(x => x.Id));
             _context.AppointmentInformations.Update(appointment);
             await _context.SaveChangesAsync();
-            
+
+            var patientInformation = await _context.PatientInformations.FirstOrDefaultAsync(x => x.Id == appointment.Id);
+
+            var timeIds = appointment.AppointmentTimeIds.Split(',').Select(int.Parse).ToList();
+            var selectedSlots = timeslots
+                .Where(x => appointment.AppointmentTimeIds != null && timeIds.Contains(x.Id))
+                .OrderBy(x => x.MilitaryTime).ToList();
+            var appointmentLabel = selectedSlots.Count > 1
+                ? $"{selectedSlots[0].Name.Split("-")[0].Trim()} - {selectedSlots[1].Name.Split("-")[0].Trim()}"
+                : selectedSlots[0].Name;
+            if (patientInformation.Email != null && patientInformation.Email != string.Empty)
+            {
+                if (appointment.PaymentMethod == PaymentMethodEnum.Paypal)
+                {
+                    var emailBody =
+                        $"Your appointment  has been rescheduled on {appointment.AppointmentDate.ToString("MM/dd/yyyy")} {appointmentLabel}.<br/>" +
+                        $"Please be in the clinic 10 minutes before the appointment, and you have a grace period of 10 to 15 minutes otherwise wise your appointment will be reschedule.";
+                    SendEmail(patientInformation.Email, emailBody, "Reschedule Confirmation");
+                }
+                else
+                {
+                    var emailBody =
+                        $"Appointment on {appointment.AppointmentDate.ToString("MM/dd/yyyy")} {appointmentLabel} has been scheduled to you.<br/>" +
+                        $"Please be in the clinic 10 minutes before the appointment, and you have a grace period of 10 to 15 minutes otherwise wise your appointment will be reschedule." +
+                        $"\n\rPlease don't forget to settle your payment at the clinic.";
+                    SendEmail(patientInformation.Email, emailBody, "Schedule Confirmation");
+                }
+            }
+
+            if (patientInformation.Phone != null && patientInformation.Phone != string.Empty)
+            {
+                var smsMessage = $"Your appointment  has been rescheduled on {appointment.AppointmentDate.ToString("MM/dd/yyyy")} {appointmentLabel}.<br/>" +
+                        $"Please be in the clinic 10 minutes before the appointment, and you have a grace period of 10 to 15 minutes otherwise wise your appointment will be reschedule.";
+                SendSms(patientInformation.Phone, smsMessage);
+            }
+
             return StatusCode(StatusCodes.Status200OK, new Response { Status = StatusEnum.Success.GetDisplayName(), Message = "Successfully Rescheduled Appointment" });
         }
         catch (Exception ex)

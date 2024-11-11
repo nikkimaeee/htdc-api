@@ -334,15 +334,18 @@ public class AdminController : BaseController
             
             if (patientInformation.Email != null && patientInformation.Email != string.Empty)
             {
-               
+
                 var emailBody =
-                    $"Appointment on {appointmentInformation.AppointmentDate.ToString("MM/dd/yyyy")} {appointmentLabel} has been scheduled to you.";
+                            $"Appointment on {appointmentInformation.AppointmentDate.ToString("MM/dd/yyyy")} {appointmentLabel} has been scheduled to you.<br/>" +
+                            $"Please be in the clinic 10 minutes before the appointment, and you have a grace period of 10 to 15 minutes otherwise wise your appointment will be reschedule.";
                 SendEmail(patientInformation.Email, emailBody, "Schedule Confirmation");
                 
             }
             if (patientInformation.Phone != null && patientInformation.Phone != string.Empty)
             {
-                SendSms(patientInformation.Phone, $"Your appointment on {appointmentInformation.AppointmentDate.ToString("MM/dd/yyyy")} {appointmentLabel} has been scheduled to you.");
+                var smsMessage = $"Your appointment on {appointmentInformation.AppointmentDate.ToString("MM/dd/yyyy")} {appointmentLabel} " +
+                        $"has been scheduled. Please be in the clinic 10 minutes before the appointment, and you have a grace period of 10 to 15 minutes otherwise wise your appointment will be reschedule.\r\n ";
+                SendSms(patientInformation.Phone, smsMessage);
             }
 
             return StatusCode(StatusCodes.Status200OK,

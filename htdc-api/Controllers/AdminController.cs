@@ -671,6 +671,7 @@ public class AdminController : BaseController
                 patientInformation.IsSenior = model.IsSenior;
                 patientInformation.IsPregnant = model.IsPregnant;
                 patientInformation.IsPwd = model.IsPwd;
+                patientInformation.Address = model.Address;
 
                 _context.UserProfiles.Update(userProfile);
                 _context.PatientInformations.Update(patientInformation);

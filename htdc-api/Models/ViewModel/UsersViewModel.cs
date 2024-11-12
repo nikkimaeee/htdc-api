@@ -15,16 +15,17 @@ public class UsersViewModel
     public string? Avatar { get; set; }
 
     public string Role { get; set; }
-    
+
     public string Phone { get; set; }
-    
+
     public PatientInformation? PatientInformation { get; set; }
-    
+
     public string? Password { get; set; }
-    
-    public bool IsPwd  { get; set; }
-    public bool IsSenior  { get; set; }
+
+    public bool IsPwd { get; set; }
+    public bool IsSenior { get; set; }
     public bool IsPregnant { get; set; }
     public DateTime DateCreated { get; set; }
     public DateTime DateUpdated { get; set; }
+    public string? Address { get; set; }
 }

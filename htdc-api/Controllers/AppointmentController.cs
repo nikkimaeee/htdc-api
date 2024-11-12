@@ -146,13 +146,20 @@ public class AppointmentController: BaseController
             var timeTable = await _context.AppointmentTimes.ToListAsync();
             var isAdmin = User.IsInRole("Admin");
             var totalRecords = 0;
+            filter = filter != null ? filter.Trim() : null;
             if (isAdmin)
             {
                 totalRecords = await _context.AppointmentInformations
                     .Join(_context.PatientInformations, x => x.PatientInformationId,y => y.Id,
                         (x, y) => new { PatientInformation = y, AppointmentInformation = x })
+                    .Join(_context.Products, x => x.AppointmentInformation.ProductId, y => y.Id,
+                        (x, y) => new { PatientInformation = x.PatientInformation, AppointmentInformation = x.AppointmentInformation, Product = y})
                     .Where(x => x.AppointmentInformation.IsActive &&
-                        (filter == null || x.PatientInformation.FirstName.Contains(filter) || x.PatientInformation.LastName.Contains(filter) || x.PatientInformation.Email.Contains(filter) || x.AppointmentInformation.TransactionId.Contains(filter))
+                        (filter == null || x.PatientInformation.FirstName.Contains(filter) || 
+                        x.PatientInformation.LastName.Contains(filter) || 
+                        x.PatientInformation.Email.Contains(filter) || 
+                        x.AppointmentInformation.TransactionId.Contains(filter) ||
+                        x.Product.Name.Contains(filter))
                         && x.AppointmentInformation.AppointmentDate.Date >= dateFrom.Date && x.AppointmentInformation.AppointmentDate.Date <= dateTo.Date
                         && (status == "All" || x.AppointmentInformation.Status == statusEnum)
                         )
@@ -161,8 +168,15 @@ public class AppointmentController: BaseController
                 var list = await _context.AppointmentInformations
                     .Join(_context.PatientInformations, x => x.PatientInformationId,y => y.Id,
                         (x, y) => new { PatientInformation = y, AppointmentInformation = x })
+                    .Join(_context.Products, x => x.AppointmentInformation.ProductId, y => y.Id,
+                        (x, y) => new { PatientInformation = x.PatientInformation, AppointmentInformation = x.AppointmentInformation, Product = y })
                     .Where(x =>  x.AppointmentInformation.IsActive &&
-                                (filter == null || x.PatientInformation.FirstName.Contains(filter) || x.PatientInformation.LastName.Contains(filter) || x.PatientInformation.Email.Contains(filter) || x.AppointmentInformation.TransactionId.Contains(filter))
+                                (filter == null || 
+                                x.PatientInformation.FirstName.Contains(filter) || 
+                                x.PatientInformation.LastName.Contains(filter) || 
+                                x.PatientInformation.Email.Contains(filter) || 
+                                x.AppointmentInformation.TransactionId.Contains(filter) ||
+                                x.Product.Name.Contains(filter))
                                 && x.AppointmentInformation.AppointmentDate.Date >= dateFrom.Date && x.AppointmentInformation.AppointmentDate.Date <= dateTo.Date
                                 && (status == "All" || x.AppointmentInformation.Status == statusEnum))
                     .OrderByDescending(x => x.AppointmentInformation.AppointmentDate)
@@ -192,7 +206,10 @@ public class AppointmentController: BaseController
                         Status = appointment.AppointmentInformation.Status.GetDisplayName(),
                         IsWalkIn = appointment.AppointmentInformation.IsWalkIn,
                         TransactionId = appointment.AppointmentInformation.TransactionId,
-                        ReferenceNumber = appointment.AppointmentInformation.ReferenceNumber
+                        ReferenceNumber = appointment.AppointmentInformation.ReferenceNumber,
+                        IsPwd = appointment.AppointmentInformation.IsPwd,
+                        IsPregnant = appointment.AppointmentInformation.IsPregnant,
+                        IsSenior = appointment.AppointmentInformation.IsSenior
                     };
                     
                     if (!string.IsNullOrEmpty(appointment.AppointmentInformation.MedCert) && System.IO.File.Exists(appointment.AppointmentInformation.MedCert))
@@ -214,17 +231,30 @@ public class AppointmentController: BaseController
                 totalRecords = await _context.AppointmentInformations
                     .Join(_context.PatientInformations, x => x.PatientInformationId,y => y.Id,
                         (x, y) => new { PatientInformation = y, AppointmentInformation = x })
+                    .Join(_context.Products, x => x.AppointmentInformation.ProductId, y => y.Id,
+                        (x, y) => new { PatientInformation = x.PatientInformation, AppointmentInformation = x.AppointmentInformation, Product = y })
                     .Where(x => 
                         x.AppointmentInformation.IsActive && x.AppointmentInformation.AspNetUserId == userId && 
-                                (filter == null || x.PatientInformation.FirstName.Contains(filter) || x.PatientInformation.LastName.Contains(filter) || x.PatientInformation.Email.Contains(filter) || x.AppointmentInformation.TransactionId.Contains(filter))
+                                (filter == null || 
+                                x.PatientInformation.FirstName.Contains(filter) || 
+                                x.PatientInformation.LastName.Contains(filter) || 
+                                x.PatientInformation.Email.Contains(filter) || 
+                                x.AppointmentInformation.TransactionId.Contains(filter) ||
+                                x.Product.Name.Contains(filter))
                         && (status == "All" || x.AppointmentInformation.Status == statusEnum))
                     .CountAsync();
                 var list = await _context.AppointmentInformations
                     .Join(_context.PatientInformations, x => x.PatientInformationId,y => y.Id,
                         (x, y) => new { PatientInformation = y, AppointmentInformation = x })
+                    .Join(_context.Products, x => x.AppointmentInformation.ProductId, y => y.Id,
+                        (x, y) => new { PatientInformation = x.PatientInformation, AppointmentInformation = x.AppointmentInformation, Product = y })
                     .Where(x => 
                         x.AppointmentInformation.IsActive && x.AppointmentInformation.AspNetUserId == userId && 
-                                (filter == null || x.PatientInformation.FirstName.Contains(filter) || x.PatientInformation.LastName.Contains(filter) || x.PatientInformation.Email.Contains(filter) || x.AppointmentInformation.TransactionId.Contains(filter))
+                                (filter == null || x.PatientInformation.FirstName.Contains(filter) || 
+                                x.PatientInformation.LastName.Contains(filter) || 
+                                x.PatientInformation.Email.Contains(filter) || 
+                                x.AppointmentInformation.TransactionId.Contains(filter) ||
+                                x.Product.Name.Contains(filter))
                         && (status == "All" || x.AppointmentInformation.Status == statusEnum))
                     .OrderByDescending(x => x.AppointmentInformation.AppointmentDate)
                     .Skip((page - 1) * rows)
@@ -252,7 +282,10 @@ public class AppointmentController: BaseController
                         Status = appointment.AppointmentInformation.Status.GetDisplayName(),
                         IsWalkIn = appointment.AppointmentInformation.IsWalkIn,
                         TransactionId = appointment.AppointmentInformation.TransactionId,
-                        ReferenceNumber = appointment.AppointmentInformation.ReferenceNumber
+                        ReferenceNumber = appointment.AppointmentInformation.ReferenceNumber,
+                        IsPwd = appointment.AppointmentInformation.IsPwd,
+                        IsPregnant = appointment.AppointmentInformation.IsPregnant,
+                        IsSenior = appointment.AppointmentInformation.IsSenior
                     };
                     
                     if (!string.IsNullOrEmpty(appointment.AppointmentInformation.MedCert) && System.IO.File.Exists(appointment.AppointmentInformation.MedCert))
@@ -373,8 +406,12 @@ public class AppointmentController: BaseController
                     TransactionId = appointment.TransactionId,
                     AppointmentDuration = product.Duration,
                     MedCert = medCert,
-                    Amount = product.Price
+                    Amount = product.Price,
+                    IsPwd = appointment.AppointmentDetails.PersonalInformation.IsPwd,
+                    IsSenior = appointment.AppointmentDetails.PersonalInformation.IsSenior,
+                    IsPregnant = appointment.AppointmentDetails.PersonalInformation.IsPregnant
                 };
+
                 await _context.AppointmentInformations.AddAsync(appointmentInformation);
                 await _context.SaveChangesAsync();
                 var timeIds = appointmentInformation.AppointmentTimeIds.Split(',').Select(int.Parse).ToList();

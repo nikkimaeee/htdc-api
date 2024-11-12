@@ -319,8 +319,12 @@ public class AdminController : BaseController
                 IsWalkIn = payload.Schedule.IsWalkIn,
                 AppointmentDuration = product.Duration,
                 MedCert = medCert,
-                Amount = product.Price
+                Amount = product.Price,
+                IsPwd = payload.PatientInformation.IsPwd,
+                IsSenior = payload.PatientInformation.IsSenior,
+                IsPregnant = payload.PatientInformation.IsPregnant
             };
+
             await _context.AppointmentInformations.AddAsync(appointmentInformation);
             await _context.SaveChangesAsync();
             
@@ -331,21 +335,34 @@ public class AdminController : BaseController
             var appointmentLabel = selectedSlots.Count > 1
                 ? $"{selectedSlots[0].Name.Split("-")[0].Trim()} - {selectedSlots[selectedSlots.Count - 1].Name.Split("-")[0].Trim()}"
                 : selectedSlots[0].Name;
-            
+
+            var emailBody = $"Hi {patientInformation.FirstName} {patientInformation.LastName}!<br/><br/>" +
+            $"Your appointment is scheduled<br/>" +
+            $"Please be in the clinic 10 minutes before the appointment, and you have a grace period of 10 to 15 minutes otherwise wise your appointment will be reschedule.<br/><br/>" +
+            $"NAME: {patientInformation.FirstName} {patientInformation.LastName}<br/>" + 
+            $"Phone: {patientInformation.Phone}<br/>" +
+            $"Email: {patientInformation.Email}<br/>" +
+            $"Appointment Details: {appointmentInformation.AppointmentDate.ToString("MM/dd/yyyy")} {appointmentLabel}<br/>" +
+            $"Service: {product.Name}<br/><br/>" + 
+            $"Thanks, <br/>Ocampo Dental Clinic<br/><br/>";
+
             if (patientInformation.Email != null && patientInformation.Email != string.Empty)
             {
-
-                var emailBody =
-                            $"Appointment on {appointmentInformation.AppointmentDate.ToString("MM/dd/yyyy")} {appointmentLabel} has been scheduled to you.<br/>" +
-                            $"Please be in the clinic 10 minutes before the appointment, and you have a grace period of 10 to 15 minutes otherwise wise your appointment will be reschedule.";
-                SendEmail(patientInformation.Email, emailBody, "Schedule Confirmation");
-                
+                SendEmail(patientInformation.Email, emailBody, "Schedule Confirmation");                
             }
+
             if (patientInformation.Phone != null && patientInformation.Phone != string.Empty)
             {
-                var smsMessage = $"Your appointment on {appointmentInformation.AppointmentDate.ToString("MM/dd/yyyy")} {appointmentLabel} " +
-                        $"has been scheduled. Please be in the clinic 10 minutes before the appointment, and you have a grace period of 10 to 15 minutes otherwise wise your appointment will be reschedule.\r\n ";
-                SendSms(patientInformation.Phone, smsMessage);
+                emailBody = $"Hi {patientInformation.FirstName} {patientInformation.LastName}!\r\n\r\n" +
+                    $"Your appointment is scheduled\r\n" +
+                    $"Please be in the clinic 10 minutes before the appointment, and you have a grace period of 10 to 15 minutes otherwise wise your appointment will be reschedule.\r\n\r\n" +
+                    $"Phone: 09971563948\r\n" +
+                    $"Email: joashpatawaran@gmail.com\r\n" +
+                    $"Appointment Details: {appointmentInformation.AppointmentDate.ToString("MM/dd/yyyy")} {appointmentLabel}\r\n" +
+                    $"Service: {product.Name}\r\n\r\n" +
+                    $"Thanks, \r\nOcampo Dental Clinic\r\n\r\n" +
+                    $"NAME: Joash Patawaran\r\n";
+                SendSms(patientInformation.Phone, emailBody);
             }
 
             return StatusCode(StatusCodes.Status200OK,
@@ -1027,26 +1044,43 @@ public class AdminController : BaseController
         var patientInformation = await _context.PatientInformations.FindAsync(appointment.PatientInformationId);
         var timeslots = await _context.AppointmentTimes.ToListAsync();
         var product = await _context.Products.FindAsync(appointment.ProductId);
+
+        var timeIds = appointment.AppointmentTimeIds.Split(',').Select(int.Parse).ToList();
+        var selectedSlots = timeslots
+            .Where(x => appointment.AppointmentTimeIds != null && appointment.AppointmentTimeIds.Contains(x.Id.ToString()))
+            .OrderBy(x => x.MilitaryTime).ToList();
+        var appointmentLabel = selectedSlots.Count > 1
+            ? $"{selectedSlots[0].Name.Split("-")[0].Trim()} - {selectedSlots[selectedSlots.Count - 1].Name.Split("-")[0].Trim()}"
+            : selectedSlots[0].Name;
+        
+        var emailBody = $"Hi {patientInformation.FirstName} {patientInformation.LastName}!<br/><br/>" +
+            $"Your appointment is confirmed<br/><br/>" +
+            $"NAME: {patientInformation.FirstName} {patientInformation.LastName}<br/>" +
+            $"Phone: {patientInformation.Phone}<br/>" +
+            $"Email: {patientInformation.Email}<br/>" +
+            $"Appointment Details: {appointment.AppointmentDate.ToString("MM/dd/yyyy")} {appointmentLabel}<br/>" +
+            $"Service: {product.Name}<br/><br/>" +
+            $"Thanks, <br/>Ocampo Dental Clinic<br/><br/>";
         
         if (patientInformation.Email != null && patientInformation.Email != string.Empty)
         {
-            var timeIds = appointment.AppointmentTimeIds.Split(',').Select(int.Parse).ToList();
-            var selectedSlots = timeslots
-                .Where(x => appointment.AppointmentTimeIds != null && appointment.AppointmentTimeIds.Contains(x.Id.ToString()))
-                .OrderBy(x => x.MilitaryTime).ToList();
-            var appointmentLabel = selectedSlots.Count > 1
-                ? $"{selectedSlots[0].Name.Split("-")[0].Trim()} - {selectedSlots[selectedSlots.Count - 1].Name.Split("-")[0].Trim()}"
-                : selectedSlots[0].Name;
-            var emailBody =
-                $"Your appointment on {appointment.AppointmentDate.ToString("MM/dd/yyyy")} {appointmentLabel} has been approved.";
+
             SendEmail(patientInformation.Email, emailBody, "Schedule Confirmation");
-                
-            if (patientInformation.Phone != null && patientInformation.Phone != string.Empty)
-            {
-                SendSms(patientInformation.Phone, $"Your appointment on {appointment.AppointmentDate.ToString("MM/dd/yyyy")} {appointmentLabel} has been approved.");
-            }
         }
-        
+
+        if (patientInformation.Phone != null && patientInformation.Phone != string.Empty)
+        {
+            emailBody = $"Hi {patientInformation.FirstName} {patientInformation.LastName}!\r\n\r\n" +
+            $"Your appointment is confirmed\r\n\r\nThanks, \r\nOcampo Dental Clinic\r\n\r\n" +
+            $"NAME: Joash Patawaran\r\n" +
+            $"Phone: 09971563948\r\n" +
+            $"Email: {patientInformation.Email}\r\n" +
+            $"Appointment Details: {appointment.AppointmentDate.ToString("MM/dd/yyyy")} {appointmentLabel}\r\n" +
+            $"Service: {product.Name}";
+
+            SendSms(patientInformation.Phone, emailBody);
+        }
+
         return Ok(new Response
             { Status = StatusEnum.Success.GetDisplayName(), Message = "Success!" });
     }

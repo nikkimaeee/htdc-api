@@ -23,6 +23,9 @@ public class AppointmentInformation: BaseModel
     [MaxLength(10000)]
     public string? Prescriptions { get; set; }
     public List<AppointmentAttachments>? Attachments { get; set; }
+    public bool IsPwd { get; set; }
+    public bool IsSenior { get; set; }
+    public bool IsPregnant { get; set; }
 }
 
 public class AppointmentTimePayload

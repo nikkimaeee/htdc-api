@@ -18,4 +18,7 @@ public class AppointmentTable
     public bool IsWalkIn { get; set; }
     public PatientInformation? PatientInformation { get; set; }
     public string MedCert { get; set; }
+    public bool IsPwd { get; set; }
+    public bool IsPregnant { get; set; }
+    public bool IsSenior { get; set; }
 }

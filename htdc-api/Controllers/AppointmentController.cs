@@ -441,7 +441,7 @@ public class AppointmentController: BaseController
                     {
                         var emailBody =
                             $"Appointment on {appointmentInformation.AppointmentDate.ToString("MM/dd/yyyy")} {appointmentLabel} has been scheduled to you.<br/>" +
-                            $"Please be in the clinic 10 minutes before the appointment, and you have a grace period of 10 to 15 minutes otherwise wise your appointment will be reschedule." +
+                            $"Please be in the clinic 10 minutes before the appointment, and you have a grace period of 10 to 15 minutes otherwise your appointment will be reschedule." +
                             $"\n\rPlease don't forget to settle your payment at the clinic.";
                         SendEmail(patientInformation.Email, emailBody, "Schedule Confirmation");
                     }
@@ -450,7 +450,7 @@ public class AppointmentController: BaseController
                 if (patientInformation.Phone != null && patientInformation.Phone != string.Empty)
                 {
                     var smsMessage = $"Your appointment on {appointmentInformation.AppointmentDate.ToString("MM/dd/yyyy")} {appointmentLabel} " +
-                        $"has been scheduled. Please be in the clinic 10 minutes before the appointment, and you have a grace period of 10 to 15 minutes otherwise wise your appointment will be reschedule.\r\n ";
+                        $"has been scheduled. Please be in the clinic 10 minutes before the appointment, and you have a grace period of 10 to 15 minutes otherwise your appointment will be reschedule.\r\n ";
                     SendSms(patientInformation.Phone, smsMessage);
                 }
             }

@@ -338,7 +338,7 @@ public class AdminController : BaseController
 
             var emailBody = $"Hi {patientInformation.FirstName} {patientInformation.LastName}!<br/><br/>" +
             $"Your appointment is scheduled<br/>" +
-            $"Please be in the clinic 10 minutes before the appointment, and you have a grace period of 10 to 15 minutes otherwise wise your appointment will be reschedule.<br/><br/>" +
+            $"Please be in the clinic 10 minutes before the appointment, and you have a grace period of 10 to 15 minutes otherwise your appointment will be reschedule.<br/><br/>" +
             $"NAME: {patientInformation.FirstName} {patientInformation.LastName}<br/>" + 
             $"Phone: {patientInformation.Phone}<br/>" +
             $"Email: {patientInformation.Email}<br/>" +
@@ -355,7 +355,7 @@ public class AdminController : BaseController
             {
                 emailBody = $"Hi {patientInformation.FirstName} {patientInformation.LastName}!\r\n\r\n" +
                     $"Your appointment is scheduled\r\n" +
-                    $"Please be in the clinic 10 minutes before the appointment, and you have a grace period of 10 to 15 minutes otherwise wise your appointment will be reschedule.\r\n\r\n" +
+                    $"Please be in the clinic 10 minutes before the appointment, and you have a grace period of 10 to 15 minutes otherwise your appointment will be reschedule.\r\n\r\n" +
                     $"Phone: 09971563948\r\n" +
                     $"Email: joashpatawaran@gmail.com\r\n" +
                     $"Appointment Details: {appointmentInformation.AppointmentDate.ToString("MM/dd/yyyy")} {appointmentLabel}\r\n" +

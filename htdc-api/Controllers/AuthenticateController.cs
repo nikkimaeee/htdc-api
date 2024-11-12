@@ -247,6 +247,83 @@ public class AuthenticateController : BaseController
 
         return Ok();
     }
+
+
+    [HttpPost]
+    [Route("ForgotPassword")]
+    [ApiExplorerSettings(IgnoreApi = true)]
+    [AllowAnonymous]
+    public async Task<IActionResult> ForgotPasswordLink(VerifyEmailPayload payload)
+    {
+        var user = await _userManager.FindByEmailAsync(payload.Email);
+        if(user != null)
+        {
+            byte[] time = BitConverter.GetBytes(DateTime.UtcNow.ToBinary());
+            byte[] key = Guid.NewGuid().ToByteArray();
+            string token = Convert.ToBase64String(time.Concat(key).ToArray());
+
+            var url = _configuration.GetSection("baseUrl").Value;
+            var confirmationEmail = $"{url}/resetpassword?user={user.Id}&token={UrlEncode(token)}";
+            await _context.VerificationTokens.AddAsync(new VerificationTokens
+            {
+                AspNetUserId = user.Id,
+                Token = token,
+                IssuedDate = DateTime.UtcNow,
+                ExpiresDate = DateTime.UtcNow.AddHours(1)
+            });
+
+            await _context.SaveChangesAsync();
+
+            var emailBody = $"Click the url to reset password <br/>{confirmationEmail}";
+            SendEmail(payload.Email, emailBody, "Reset Password");
+        } else
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                    new Response { Status = StatusEnum.Error.GetDisplayName(), Message = "Invalid Email!" });
+        }
+
+        return Ok(new Response
+        { Status = StatusEnum.Success.GetDisplayName(), Message = "Sent!" });
+    }
+
+    [HttpPost]
+    [Route("ResetPassword")]
+    [AllowAnonymous]
+    [ApiExplorerSettings(IgnoreApi = true)]
+    public async Task<IActionResult> ResetPassword(VerifyEmailPayload payload)
+    {
+        try
+        {
+            var dateNow = DateTime.UtcNow;
+            var user = await _userManager.FindByIdAsync(payload.UserId);
+            var existingToken = await _context.VerificationTokens.FirstOrDefaultAsync(x => x.Token == payload.Token);
+            if (existingToken == null || existingToken.AspNetUserId != user.Id)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new Response { Status = StatusEnum.Error.GetDisplayName(), Message = "Invalid Token!" });
+            }
+
+            if (dateNow > existingToken.ExpiresDate)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new Response { Status = StatusEnum.Error.GetDisplayName(), Message = "Reset Password Url already expired!" });
+            }
+
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var result = await _userManager.ResetPasswordAsync(user, token, payload.Password);
+
+            return Ok(new Response
+            { Status = StatusEnum.Success.GetDisplayName(), Message = "Password reset successfully!" });
+        }
+        catch (Exception ex)
+        {
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                    new Response { Status = StatusEnum.Error.GetDisplayName(), Message = ex.Message + "/n/n" + ex.StackTrace });
+        }
+    }
+
+
+
     private JwtSecurityToken GetToken(List<Claim> authClaims)
     {
         var authSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:Secret"]));

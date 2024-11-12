@@ -452,6 +452,7 @@ public class AppointmentController: BaseController
         {
             var appointment = await _context.AppointmentInformations.FindAsync(model.AppointmentId);
             appointment.AppointmentDate = model.AppointmentDate;
+            appointment.Status = AppointmentStatusEnum.Pending;
             
             var timeslots = await _context.AppointmentTimes.ToListAsync();
             var product = await _context.Products.FindAsync(model.ProductId);

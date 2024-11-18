@@ -48,7 +48,7 @@ public class AppointmentController: BaseController
                 var remainingSlot = 1;
                 var existingAppointment = await _context.AppointmentInformations
                     .Where(x => x.AppointmentDate.Date == date.Date
-                                && x.IsActive && x.Status != AppointmentStatusEnum.Cancelled)
+                                && x.IsActive && (x.Status == AppointmentStatusEnum.Approved || x.Status == AppointmentStatusEnum.Done))
                     .ToListAsync();
 
                 existingAppointment = existingAppointment.Where(x => x.AppointmentTimeIds.Split(',')
@@ -85,7 +85,7 @@ public class AppointmentController: BaseController
         var timeSlots = await _context.AppointmentTimes.ToListAsync();
 
         var existingAppointments = await _context.AppointmentInformations
-            .Where(x => x.IsActive && x.Status != AppointmentStatusEnum.Cancelled 
+            .Where(x => x.IsActive && (x.Status == AppointmentStatusEnum.Approved || x.Status == AppointmentStatusEnum.Done)
             && x.AppointmentDate.Date > dateToday.Date)
             .Select(x => new
             {

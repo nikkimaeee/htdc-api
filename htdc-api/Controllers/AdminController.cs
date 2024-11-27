@@ -1,3 +1,4 @@
+using System.Data.OleDb;
 using System.Reflection;
 using System.Security.Claims;
 using AutoMapper;
@@ -1126,7 +1127,70 @@ public class AdminController : BaseController
         return Ok(new Response
             { Status = StatusEnum.Success.GetDisplayName(), Message = "Success!" });
     }
+
+    [HttpGet]
+    [Route("GetServiceBreakdownChart")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetServiceBreakdownChart()
+    {
+        var services = await _context.AppointmentInformations
+            .Join(_context.Products, 
+            information => information.ProductId, product => product.Id,
+            (information, product) => new { information, product})
+            .Where(x => x.information.Status == AppointmentStatusEnum.Done)
+            .GroupBy(x => x.product.Name)
+            .Select(x => new { ProductName = x.Key, Count = x.Count() }).ToListAsync();
+        var totalItems = services.Sum(x => x.Count);
+        var returnModel = new List<ServiceBreakdownViewModel>();
+        foreach (var item in services) {
+            returnModel.Add(new ServiceBreakdownViewModel
+            {
+                ProductName = item.ProductName,
+                Percentage = ((decimal)item.Count / (decimal)totalItems) * 100
+            });
+        }
+        return Ok(returnModel);
+    }
+
+    [HttpPost]
+    [Route("GetPatientChart")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetPatientChart([FromBody] SalesPayload payload)
+    {
+        var patientList = await _context.PatientInformations
+            .Join(_context.AppointmentInformations, patientInfo => patientInfo.Id, appointmentInfo => appointmentInfo.PatientInformationId,
+            (patientInfo, appointmentInfo) => new { patientInfo, appointmentInfo })
+            .Where(x => x.appointmentInfo.AppointmentDate.Date >= payload.DateFrom.Value.Date 
+            && x.appointmentInfo.AppointmentDate.Date <= payload.DateTo.Value.Date
+            && x.appointmentInfo.Status == AppointmentStatusEnum.Done)
+            .ToListAsync();
+        var newPatient = patientList.Where(x => x.patientInfo.DateCreated.Date >= payload.DateFrom.Value.Date && x.patientInfo.DateCreated.Date <= payload.DateTo.Value.Date).Select(x => x.appointmentInfo).Count();
+        var oldPatient = patientList.Where(x => x.patientInfo.DateCreated.Date < payload.DateFrom.Value.Date).Select(x => x.appointmentInfo).Count();
+        var totalPatients = 0;
+        var model = new List<PatientChartViewModel>();
+
+        totalPatients = newPatient + oldPatient;
+
+        model.Add(new PatientChartViewModel
+        {
+            PatientType = "New Patient",
+            Count = newPatient,
+            Percentage = newPatient > 0 ? Math.Round((decimal)newPatient / (decimal)totalPatients * 100, 2) : 0
+        });
+
+        model.Add(new PatientChartViewModel
+            {
+                PatientType = "Old Patient",
+                Count = oldPatient,
+                Percentage = oldPatient > 0 ? Math.Round((decimal)oldPatient / (decimal)totalPatients * 100, 2) : 0
+            });
+
+        return Ok(model);
+    }
     
+
+    #region helper
+
     private string ConvertImageToBase64(string location)
     {
         byte[] imageArray = System.IO.File.ReadAllBytes(location);
@@ -1140,4 +1204,6 @@ public class AdminController : BaseController
         if(!exists)
             System.IO.Directory.CreateDirectory(filePath);
     }
+
+    #endregion
 }

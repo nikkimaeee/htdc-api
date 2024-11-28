@@ -36,19 +36,19 @@ namespace htdc_api.Services
             _recurringJobManager.AddOrUpdate("Send Reminder", () => Remind(), Cron.Hourly);
         }
 
-        public async void Remind()
+        public void Remind()
         {
             var dateToday = DateTime.UtcNow.ConvertTime();
-            var appointments = await _context.AppointmentInformations
-                .Where(x => x.AppointmentDate.Date == dateToday.Date).ToListAsync();
+            var appointments = _context.AppointmentInformations
+                .Where(x => x.AppointmentDate.Date == dateToday.Date).ToList();
 
             foreach (var appointment in appointments)
             {
-                var reminder = await _context.AutoReminders.FirstOrDefaultAsync(x => x.AppointmentId == appointment.Id);
+                var reminder = _context.AutoReminders.FirstOrDefault(x => x.AppointmentId == appointment.Id);
                 if (reminder == null)
                 {
-                    var patientInfo = await _context.PatientInformations.Where(x => x.Id == appointment.PatientInformationId).FirstOrDefaultAsync();
-                    if(patientInfo.Email != null)
+                    var patientInfo = _context.PatientInformations.Where(x => x.Id == appointment.PatientInformationId).FirstOrDefault();
+                    if (patientInfo.Email != null)
                     {
                         var emailBody =
                         $"You have an appointment today.<br/>" +
@@ -64,7 +64,8 @@ namespace htdc_api.Services
                         _emailSender.SendEmail(email);
                     }
 
-                    if (patientInfo.Phone != null) {
+                    if (patientInfo.Phone != null)
+                    {
                         var emailBody =
                         $"You have an appointment today.<br/>" +
                                 $"Please be in the clinic 10 minutes before the appointment, and you have a grace period of 10 to 15 minutes otherwise your appointment will be reschedule." +
@@ -90,8 +91,8 @@ namespace htdc_api.Services
                         IsProcessed = true
                     };
 
-                    await _context.AutoReminders.AddAsync(model);
-                    await _context.SaveChangesAsync();
+                    _context.AutoReminders.Add(model);
+                    _context.SaveChanges();
                 }
             }
         }

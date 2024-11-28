@@ -1214,7 +1214,7 @@ public class AdminController : BaseController
             });
         }
 
-        return Ok();
+        return Ok(model);
     }
 
 

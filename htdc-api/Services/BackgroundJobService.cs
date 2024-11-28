@@ -40,7 +40,7 @@ namespace htdc_api.Services
         {
             var dateToday = DateTime.UtcNow.ConvertTime();
             var appointments = _context.AppointmentInformations
-                .Where(x => x.AppointmentDate.Date == dateToday.Date).ToList();
+                .Where(x => x.AppointmentDate.Date == dateToday.Date && x.Status == Enumerations.AppointmentStatusEnum.Approved).ToList();
 
             foreach (var appointment in appointments)
             {

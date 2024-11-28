@@ -1187,7 +1187,36 @@ public class AdminController : BaseController
 
         return Ok(model);
     }
-    
+
+    [HttpGet]
+    [Route("GetServiceRevenue")]
+    [Authorize(Roles = "Admin")]
+    public async Task<IActionResult> GetServiceRevenue()
+    {
+        var services = await _context.Products
+            .Join(_context.AppointmentInformations, product => product.Id, appointment => appointment.ProductId,
+            (product, appointment) => new { product, appointment })
+            .Where(x => x.appointment.Status == AppointmentStatusEnum.Done)
+            .GroupBy(x => x.product.Name)
+            .ToListAsync();
+        var model = new List<ServiceRevenueViewModel> ();
+
+        foreach (var service in services) {
+            var productName = service.Key;
+            var productinfo = service.Select(x => x.product).FirstOrDefault();
+            var appointmentInfos = service.Select(x => x.appointment).ToList();
+            model.Add(new ServiceRevenueViewModel
+            {
+                ProductName = productName,
+                UnitPrice = productinfo.Price,
+                ServiceCount = appointmentInfos.Count,
+                Total = productinfo.Price * appointmentInfos.Count
+            });
+        }
+
+        return Ok();
+    }
+
 
     #region helper
 

@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.OpenApi.Extensions;
 
 namespace htdc_api.Controllers;
@@ -1193,25 +1194,23 @@ public class AdminController : BaseController
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> GetServiceRevenue()
     {
-        var services = await _context.Products
-            .Join(_context.AppointmentInformations, product => product.Id, appointment => appointment.ProductId,
-            (product, appointment) => new { product, appointment })
-            .Where(x => x.appointment.Status == AppointmentStatusEnum.Done)
-            .GroupBy(x => x.product.Name)
-            .ToListAsync();
+        var services = await _context.Products.ToListAsync();
         var model = new List<ServiceRevenueViewModel> ();
 
-        foreach (var service in services) {
-            var productName = service.Key;
-            var productinfo = service.Select(x => x.product).FirstOrDefault();
-            var appointmentInfos = service.Select(x => x.appointment).ToList();
-            model.Add(new ServiceRevenueViewModel
+        foreach (var service in services)
+        {
+            var productName = service.Name;
+            var appointmentInfos = await _context.AppointmentInformations.Where(x => x.ProductId == service.Id && x.Status == AppointmentStatusEnum.Done).ToListAsync();
+            if (appointmentInfos.Any())
             {
-                ProductName = productName,
-                UnitPrice = productinfo.Price,
-                ServiceCount = appointmentInfos.Count,
-                Total = productinfo.Price * appointmentInfos.Count
-            });
+                model.Add(new ServiceRevenueViewModel
+                {
+                    ProductName = productName,
+                    UnitPrice = service.Price,
+                    ServiceCount = appointmentInfos.Count,
+                    Total = service.Price * appointmentInfos.Count
+                });
+            }
         }
 
         return Ok(model);

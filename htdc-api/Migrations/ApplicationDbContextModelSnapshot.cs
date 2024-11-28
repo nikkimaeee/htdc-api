@@ -54,7 +54,7 @@ namespace htdc_api.Migrations
 
                     b.HasIndex("AppointmentInformationId");
 
-                    b.ToTable("AppointmentAttachments");
+                    b.ToTable("AppointmentAttachments", (string)null);
                 });
 
             modelBuilder.Entity("htdc_api.Models.AppointmentInformation", b =>
@@ -133,7 +133,7 @@ namespace htdc_api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AppointmentInformations");
+                    b.ToTable("AppointmentInformations", (string)null);
                 });
 
             modelBuilder.Entity("htdc_api.Models.AppointmentTime", b =>
@@ -170,7 +170,7 @@ namespace htdc_api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("AppointmentTimes");
+                    b.ToTable("AppointmentTimes", (string)null);
 
                     b.HasData(
                         new
@@ -320,7 +320,7 @@ namespace htdc_api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Inquiries");
+                    b.ToTable("Inquiries", (string)null);
                 });
 
             modelBuilder.Entity("htdc_api.Models.PatientInformation", b =>
@@ -369,7 +369,7 @@ namespace htdc_api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("PatientInformations");
+                    b.ToTable("PatientInformations", (string)null);
                 });
 
             modelBuilder.Entity("htdc_api.Models.Products", b =>
@@ -426,7 +426,7 @@ namespace htdc_api.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Products");
+                    b.ToTable("Products", (string)null);
                 });
 
             modelBuilder.Entity("htdc_api.Models.UserProfile", b =>
@@ -484,7 +484,7 @@ namespace htdc_api.Migrations
 
                     b.HasIndex("PatientInformationId");
 
-                    b.ToTable("UserProfiles");
+                    b.ToTable("UserProfiles", (string)null);
 
                     b.HasData(
                         new
@@ -519,7 +519,7 @@ namespace htdc_api.Migrations
 
                     b.HasKey("Token");
 
-                    b.ToTable("VerificationTokens");
+                    b.ToTable("VerificationTokens", (string)null);
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRole", b =>

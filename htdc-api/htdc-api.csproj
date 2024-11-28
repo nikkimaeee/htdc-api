@@ -27,6 +27,8 @@
     <ItemGroup>
         <PackageReference Include="AutoMapper" Version="11.0.1" />
         <PackageReference Include="AutoMapper.Extensions.Microsoft.DependencyInjection" Version="11.0.0" />
+        <PackageReference Include="Hangfire.AspNetCore" Version="1.8.16" />
+        <PackageReference Include="Hangfire.SqlServer" Version="1.8.16" />
         <PackageReference Include="IdentityModel" Version="6.0.0" />
         <PackageReference Include="MailKit-On-NETCore" Version="2.1.0" />
         <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.8" />
@@ -43,7 +45,7 @@
         </PackageReference>
         <PackageReference Include="Microsoft.Owin.Host.SystemWeb" Version="4.2.2" />
         <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
-        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0"/>
+        <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
         <PackageReference Include="Twilio" Version="7.6.0" />
     </ItemGroup>
     

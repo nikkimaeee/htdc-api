@@ -14,6 +14,8 @@ using htdc_api.Mapper;
 using htdc_api.Models;
 using htdc_api.Seeds;
 using htdc_api.Services;
+using Hangfire;
+using Hangfire.SqlServer;
 
 var builder = WebApplication.CreateBuilder(args);
 ConfigurationManager configuration = builder.Configuration;
@@ -117,6 +119,20 @@ builder.Services.AddSwaggerGen(option =>
 
 builder.Services.AddAutoMapper(typeof(MappingProfile).Assembly);
 
+builder.Services.AddHangfire(configuration => configuration
+       .SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+       .UseSimpleAssemblyNameTypeSerializer()
+       .UseRecommendedSerializerSettings()
+       .UseSqlServerStorage(builder.Configuration.GetConnectionString("ConnStr"), new SqlServerStorageOptions
+       {
+           CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+           SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+           QueuePollInterval = TimeSpan.Zero,
+           UseRecommendedIsolationLevel = true,
+           DisableGlobalLocks = true
+       }));
+builder.Services.AddHangfireServer();
+
 var emailConfig = configuration
         .GetSection("EmailConfiguration")
         .Get<EmailConfiguration>();
@@ -125,6 +141,7 @@ var emailConfig = configuration
 builder.Services.AddSingleton(emailConfig);
 builder.Services.AddScoped<IEmailSender, EmailSender>();
 builder.Services.AddScoped<IMD5CryptoService, MD5CryptoService>();
+builder.Services.AddScoped<IBackgroundJobService, BackgroundJobService>();
 
 var app = builder.Build();
 
@@ -143,6 +160,8 @@ var app = builder.Build();
 
 
 app.UseHttpsRedirection();
+
+app.UseHangfireDashboard("/dashboard");
 
 app.UseCors("CustomCors");
 

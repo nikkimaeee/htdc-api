@@ -27,6 +27,8 @@ public class ApplicationDbContext: IdentityDbContext<IdentityUser>
     public DbSet<AppointmentAttachments> AppointmentAttachments { get; set; }
     
     public DbSet<Inquiry> Inquiries { get; set; }
+
+    public DbSet<AutoReminder> AutoReminders { get; set; }
     
     #endregion
     protected override void OnModelCreating(ModelBuilder builder)

@@ -983,7 +983,7 @@ public class AdminController : BaseController
         var list = await _context.PatientInformations
             .Where(patient => patient.IsActive && (filter == null || patient.FirstName.Contains(filter) ||
                                                    patient.LastName.Contains(filter) || patient.Email.Contains(filter)))
-            .OrderBy(x => x.Id)
+            .OrderBy(x => x.FirstName).ThenBy(x => x.LastName)
             .Skip((page - 1) * rows)
             .Take(rows)
             .ToListAsync();

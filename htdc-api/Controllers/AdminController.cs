@@ -1147,7 +1147,7 @@ public class AdminController : BaseController
             returnModel.Add(new ServiceBreakdownViewModel
             {
                 ProductName = item.ProductName,
-                Percentage = ((decimal)item.Count / (decimal)totalItems) * 100
+                Percentage = Math.Round(((decimal)item.Count / (decimal)totalItems) * 100, 2)
             });
         }
         return Ok(returnModel);

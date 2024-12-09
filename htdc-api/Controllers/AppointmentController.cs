@@ -576,7 +576,7 @@ public class AppointmentController: BaseController
         {
             byte[] imageArray = System.IO.File.ReadAllBytes(product.Image);
             string base64ImageRepresentation = Convert.ToBase64String(imageArray);
-            return Ok(base64ImageRepresentation);
+            return Ok(new { image = $"data:image/jpg;base64,{base64ImageRepresentation}"});
         }
 
         return Ok(string.Empty);

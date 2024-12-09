@@ -74,23 +74,22 @@ public class AdminController : BaseController
 
             foreach (var product in products)
             {
-                if (!string.IsNullOrEmpty(product.Image) && System.IO.File.Exists(product.Image))
-                {
-                    byte[] imageArray = System.IO.File.ReadAllBytes(product.Image);
-                    string base64ImageRepresentation = Convert.ToBase64String(imageArray);
-                    product.Image = base64ImageRepresentation;
-                }
-                else
-                {
-                    product.Image = string.Empty;
-                }
+                //if (!string.IsNullOrEmpty(product.Image) && System.IO.File.Exists(product.Image))
+                //{
+                //    byte[] imageArray = System.IO.File.ReadAllBytes(product.Image);
+                //    string base64ImageRepresentation = Convert.ToBase64String(imageArray);
+                //    product.Image = base64ImageRepresentation;
+                //}
+                //else
+                //{
+                //    product.Image = string.Empty;
+                //}
 
                 returnModel.Add(new ServiceAppointmentViewModel
                 {
                     Name = product.Name,
                     Price = product.Price,
-                    Id = product.Id,
-                    Image = product.Image
+                    Id = product.Id
                 });
             }
 

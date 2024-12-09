@@ -563,7 +563,25 @@ public class AppointmentController: BaseController
         
         return Ok(info);
     }
-    
+
+
+    [HttpGet]
+    [Route("GetImage/{id}")]
+    [AllowAnonymous]
+    public async Task<IActionResult> GetImage(int id)
+    {
+        var product = await _context.Products.FirstOrDefaultAsync(x => x.Id == id);
+        
+        if (!string.IsNullOrEmpty(product.Image) && System.IO.File.Exists(product.Image))
+        {
+            byte[] imageArray = System.IO.File.ReadAllBytes(product.Image);
+            string base64ImageRepresentation = Convert.ToBase64String(imageArray);
+            return Ok(base64ImageRepresentation);
+        }
+
+        return Ok(string.Empty);
+    }
+
     private void CheckFolderExists(string filePath)
     {
         bool exists = System.IO.Directory.Exists(filePath);

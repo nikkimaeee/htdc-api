@@ -88,12 +88,9 @@ public class AdminController : BaseController
                 returnModel.Add(new ServiceAppointmentViewModel
                 {
                     Name = product.Name,
-                    Description = product.Description,
                     Price = product.Price,
-                    Duration = product.Duration,
                     Id = product.Id,
-                    Image = product.Image,
-                    ImageFileName = product.ImageFileName
+                    Image = product.Image
                 });
             }
 

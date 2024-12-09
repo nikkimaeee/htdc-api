@@ -748,7 +748,6 @@ public class AdminController : BaseController
 
     [HttpDelete]
     [Route("DeleteAppointment/{id}")]
-    [Authorize(Roles = "Admin")]
     public async Task<IActionResult> DeleteAppointment(int id)
     {
         try

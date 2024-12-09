@@ -37,6 +37,7 @@ public class AdminController : BaseController
     [Route("GetServices")]
     public async Task<IActionResult> GetServices()
     {
+        var returnModel = new List<ServiceAppointmentViewModel>();
         try
         {
             var isAdmin = User.IsInRole("Admin");
@@ -83,9 +84,20 @@ public class AdminController : BaseController
                 {
                     product.Image = string.Empty;
                 }
+
+                returnModel.Add(new ServiceAppointmentViewModel
+                {
+                    Name = product.Name,
+                    Description = product.Description,
+                    Price = product.Price,
+                    Duration = product.Duration,
+                    Id = product.Id,
+                    Image = product.Image,
+                    ImageFileName = product.ImageFileName
+                });
             }
 
-            return Ok(products);
+            return Ok(returnModel);
         }
         catch (Exception ex)
         {
